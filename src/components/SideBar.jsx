@@ -1,17 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 export default function SideBar() {
-  const [contacts, setContacts] = useState([]);
-
-  useEffect(() => {
-    axios
-      .get("https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact")
-      .then((res) => {
-        setContacts(res.data);
-      });
-  }, []);
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts"],
+    queryFn: () => {
+      return axios
+        .get("https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact")
+        .then(res => res.data)
+    }
+  })
 
   return (
     <div

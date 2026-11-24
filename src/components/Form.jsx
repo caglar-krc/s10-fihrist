@@ -1,32 +1,45 @@
 import { useHistory } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import axios from "axios";
 
+
+
 export default function Form() {
-  const history = useHistory();
+
   const {
     register,
     handleSubmit,
     formState: { isValid, errors },
   } = useForm({ mode: "all" });
 
-  const handleFormSubmit = (data) => {
-    if (!isValid) return;
-    axios
-      .post(
-        `https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact`,
+
+  const history = useHistory();
+  const queryClient = useQueryClient()
+
+
+  const addMutationForm = useMutation({
+    mutationFn: (data) =>
+      axios.post(
+        "https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact",
         data
-      )
-      .then((res) => {
-        history.push("/");
-      });
-  };
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      history.push("/");
+    },
+  });
+
+  const formsubmit = (data) => {
+    addMutationForm.mutate(data);
+  }
+
 
   return (
     <form
       id="contact-form"
       className="contactForm"
-      onSubmit={handleSubmit(handleFormSubmit)}
+      onSubmit={handleSubmit(formsubmit)}
     >
       <p>
         <span>Name</span>

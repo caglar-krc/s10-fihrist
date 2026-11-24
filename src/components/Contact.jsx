@@ -1,32 +1,35 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useHistory } from "react-router-dom";
 
 export default function Contact() {
   const { contactId } = useParams();
-  const [contact, setContact] = useState();
   const history = useHistory();
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    axios
-      .get(
-        `https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact/${contactId}`
-      )
-      .then((res) => {
-        setContact(res.data);
-      });
-  }, [contactId]);
+  const API = "https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact/"
 
-  const handleDelete = () => {
-    axios
-      .delete(
-        `https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact/${contactId}`
-      )
-      .then((res) => {
-        history.push("/");
-      });
-  };
+
+  const { data: contact } = useQuery({
+    queryKey: ["contact", contactId],
+    queryFn: () => axios.get(API + contactId)
+      .then(res => res.data)
+  })
+
+
+  const deleteMutation = useMutation({
+    mutationFn: () => axios.delete(API + contactId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] })
+      history.push("/")
+    }
+  })
+
+  const delete1 = () => {
+    deleteMutation.mutate();
+  }
+
 
   if (!contact) return "Böyle bir kullanıcı yok";
 
@@ -67,7 +70,7 @@ export default function Contact() {
         )}
 
         <div className="mt-6">
-          <button className="text-red-500" onClick={handleDelete}>
+          <button className="text-red-500" onClick={delete1}>
             Delete
           </button>
         </div>
